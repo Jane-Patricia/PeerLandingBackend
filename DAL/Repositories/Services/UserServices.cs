@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace DAL.Repositories.Services
         public async Task<List<ResUserDTO>> GetAllUsers()
         {
             return await _context.MstUsers
-                .Where(user => user.Role != "Admin")
+                .Where(user => user.Role != "admin")
                 .Select(user => new ResUserDTO
                 {
                         Id = user.Id,
@@ -57,6 +58,11 @@ namespace DAL.Repositories.Services
 
             var loginResponse = new ResLoginDTO
             {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Balance = user.Balance,
+                Role = user.Role,
                 Token = token,
             };
 
@@ -111,9 +117,9 @@ namespace DAL.Repositories.Services
             return newUser.Name;
         }
 
-        public async Task<string> DeleteUser(string Id)
+        public async Task<string> DeleteUser(string id)
         {
-            var user = await _context.MstUsers.SingleOrDefaultAsync(e => e.Id == Id);
+            var user = await _context.MstUsers.SingleOrDefaultAsync(e => e.Id == id);
             if(user == null)
             {
                 throw new Exception("User did not exist");
@@ -125,9 +131,9 @@ namespace DAL.Repositories.Services
             return user.Name;
         }
 
-        public async Task<string> Delete(string Id)
+        public async Task<string> Delete(string id)
         {
-            var user = await _context.MstUsers.SingleOrDefaultAsync(e => e.Id == Id);
+            var user = await _context.MstUsers.SingleOrDefaultAsync(e => e.Id == id);
             if (user == null)
             {
                 throw new Exception("User did not exist");
@@ -139,9 +145,9 @@ namespace DAL.Repositories.Services
             return user.Name;
         }
 
-        public async Task<string> Update(ReqUpdateDTO reqUpdate, string Id, string currUserRole)
+        public async Task<string> Update(ReqUpdateDTO reqUpdate, string id, string currUserRole)
         {
-            var findUser = await _context.MstUsers.SingleOrDefaultAsync(e => e.Id == Id);  
+            var findUser = await _context.MstUsers.SingleOrDefaultAsync(e => e.Id == id);  
             if(findUser == null)
             {
                 throw new Exception("User did not exist");
@@ -150,21 +156,55 @@ namespace DAL.Repositories.Services
             if(currUserRole == "admin")
             {
                 findUser.Name = reqUpdate.Name;
-                findUser.Password = BCrypt.Net.BCrypt.HashPassword(reqUpdate.Password);
                 findUser.Role = reqUpdate.Role;
                 findUser.Balance = reqUpdate.Balance;
             }
             else
             {
                 findUser.Name = reqUpdate.Name;
-                findUser.Email = reqUpdate.Email;
-                findUser.Password = BCrypt.Net.BCrypt.HashPassword(reqUpdate.Password);
+                findUser.Role = reqUpdate.Role;
                 findUser.Balance = reqUpdate.Balance;
             }
             
             await _context.SaveChangesAsync();
 
             return reqUpdate.Name;
+        }
+
+        public async Task<ResGetUserByIdDTO> GetUser(string id)
+        {
+            var findUser = await _context.MstUsers.SingleOrDefaultAsync(e => e.Id == id);
+            if (findUser == null)
+            {
+                throw new Exception("User did not exist");
+            }
+
+            var res = new ResGetUserByIdDTO
+            {
+                Id = findUser.Id,
+                Name = findUser.Name,
+                Role = findUser.Role,
+                Balance = findUser.Balance
+            };
+            return res;
+        }
+
+        public async Task<ResUpdateBalanceDTO> UpdateBalance(ReqUpdateBalanceDTO reqBalance, string id)
+        {
+            var user = await _context.MstUsers.SingleOrDefaultAsync(e => e.Id == id);
+            if (user == null)
+            {
+                throw new Exception("User did not exist");
+            }
+            user.Balance = reqBalance.Balance;
+
+            await _context.SaveChangesAsync();
+
+            var res = new ResUpdateBalanceDTO
+            {
+                Balance = reqBalance.Balance,
+            };
+            return res;
         }
     }
 }

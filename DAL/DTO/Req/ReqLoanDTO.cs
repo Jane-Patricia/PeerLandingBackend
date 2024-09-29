@@ -18,8 +18,5 @@ namespace DAL.DTO.Req
 
         [Required(ErrorMessage = "Interest rate is required")]
         public decimal InterestRate { get; set; }
-
-        [Required(ErrorMessage = "Duration is required")]
-        public int Duration { get; set; }
     }
 }

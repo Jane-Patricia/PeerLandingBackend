@@ -26,7 +26,6 @@ namespace DAL.Repositories.Services
                 BorrowerId = loan.BorrowerId,
                 Amount = loan.Amount,
                 InterestRate = loan.InterestRate,
-                Duration = loan.Duration,
             };
 
             await _peerlandingContext.AddAsync(newLoan);
@@ -35,33 +34,93 @@ namespace DAL.Repositories.Services
             return newLoan.BorrowerId;
         }
 
-        public async Task<List<ResListLoanDTO>> LoanList(string? status=null)
+        //public async Task<ResListLoanDTO> GetLoanById(string id)
+        //{
+        //    var findLoan = await _peerlandingContext.MstLoans.SingleOrDefaultAsync(e => e.Id == id);
+        //    if (findLoan == null)
+        //    {
+        //        throw new Exception("User did not exist");
+        //    }
+
+        //    var res = new ResGetUserByIdDTO
+        //    {
+        //        Id = findLoan.Id,
+        //        Name = findLoan.Name,
+        //        Role = findLoan.Role,
+        //        Balance = findLoan.Balance
+        //    };
+        //    return res;
+        //}
+
+        //public async Task<List<ResListLoanDTO>> LoanList(string? status = null)
+        //{
+        //    return await _peerlandingContext.MstLoans
+        //        .Include(l => l.User)
+        //        .OrderByDescending(Reqloans => Reqloans.CreatedAt)
+        //        .Where(Reqloans => status == null || Reqloans.Status == status)
+        //        .Select(Reqloans => new ResListLoanDTO
+        //        {
+        //            LoanId = Reqloans.Id,
+        //            BorrowerName = Reqloans.User.Name,
+        //            Amount = Reqloans.Amount,
+        //            InterestRate = Reqloans.InterestRate,
+        //            Duration = Reqloans.Duration,
+        //            Status = Reqloans.Status,
+        //            CreatedAt = Reqloans.CreatedAt,
+        //            UpdatedAt = Reqloans.UpdatedAt,
+        //        }).ToListAsync();
+        //}
+
+        //public async Task<List<ResListLoanDTO>> LoanList(string status, string? id)
+        //{
+        //    var loans = await _peerlandingContext.MstLoans
+        //    .Where(l => (status == null || l.Status == status) &&
+        //    (id == null || l.BorrowerId == id))
+        //    .OrderByDescending(l => l.CreatedAt)
+        //    .Include(l => l.User)
+        //    .Select(loan => new ResListLoanDTO
+        //    {
+        //        LoanId = loan.Id,
+        //        BorrowerName = loan.User.Name,
+        //        Amount = loan.Amount,
+        //        InterestRate = loan.InterestRate,
+        //        Duration = loan.Duration,
+        //        Status = loan.Status,
+        //        CreatedAt = loan.CreatedAt,
+        //        UpdatedAt = loan.UpdatedAt,
+        //    }).ToListAsync();
+        //    return loans;
+        //}
+
+        public async Task<List<ResListLoanDTO>> LoanList(string idBorrower, string? status, string? idLender)
         {
-            return await _peerlandingContext.MstLoans
+            var loans = await _peerlandingContext.MstLoans
+                .Where(l => (status == null || l.Status == status) &&
+                (idLender == null || _peerlandingContext.TrnFundings.Any(f => f.LoanId == l.Id && f.LenderId == idLender)) &&
+                (idBorrower == null || l.BorrowerId == idBorrower))
+                .OrderByDescending(l => l.CreatedAt)
                 .Include(l => l.User)
-                .OrderByDescending(Reqloans => Reqloans.CreatedAt)
-                .Where(Reqloans => status == null || Reqloans.Status == status)
-                .Select(Reqloans => new ResListLoanDTO
-                {
-                    LoanId = Reqloans.Id,
-                    BorrowerName = Reqloans.User.Name,
-                    Amount = Reqloans.Amount,
-                    InterestRate = Reqloans.InterestRate,
-                    Duration = Reqloans.Duration,
-                    Status = Reqloans.Status,
-                    CreatedAt = Reqloans.CreatedAt,
-                    UpdatedAt = Reqloans.UpdatedAt,
-                }).ToListAsync();
+            .Select(loan => new ResListLoanDTO
+            {
+                LoanId = loan.Id,
+                BorrowerName = loan.User.Name,
+                Amount = loan.Amount,
+                InterestRate = loan.InterestRate,
+                Duration = loan.Duration,
+                Status = loan.Status,
+                CreatedAt = loan.CreatedAt,
+                UpdatedAt = loan.UpdatedAt,
+            }).ToListAsync();
+            return loans;
         }
 
-        public async Task<string> UpdateLoan(ReqUpdateLoan updateLoan, string Id)
+        public async Task<string> UpdateLoan(ReqUpdateLoan updateLoan, string id)
         {
-            var findLoan = await _peerlandingContext.MstLoans.SingleOrDefaultAsync(e => e.Id == Id);
+            var findLoan = await _peerlandingContext.MstLoans.SingleOrDefaultAsync(e => e.Id == id);
             if (findLoan == null)
             {
                 throw new Exception("Loan did not exist");
             }
-
             findLoan.Status = updateLoan.Status;
             findLoan.UpdatedAt = DateTime.UtcNow;
 

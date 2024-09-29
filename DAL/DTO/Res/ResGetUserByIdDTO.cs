@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace DAL.DTO.Res
 {
-    public class ResLoginDTO
+    public class ResGetUserByIdDTO
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public string Email { get; set; }
         public string Role { get; set; }
         public decimal? Balance { get; set; }
-        public string Token { get; set; }
     }
 }

@@ -1,27 +1,27 @@
-﻿using DAL.DTO.Req;
-using DAL.DTO.Res;
+﻿using DAL.DTO.Res;
+using DAL.Repositories.Services;
 using DAL.Repositories.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
+using Microsoft.Win32;
 using System.Text;
 
 namespace BEPeer.Controllers
 {
-    [Route("rest/v1/loan/[action]")]
+    [Route("rest/v1/repaymentDetail/[action]")]
     [ApiController]
-    public class LoanController : ControllerBase
+    public class RepaymentDetailController : Controller
     {
-        private readonly ILoanServices _loanServices;
-        public LoanController(ILoanServices loanServices)
+        private IRepaymentDetailServices _repaymentServices;
+
+        public RepaymentDetailController(IRepaymentDetailServices repaymentServices)
         {
-            _loanServices = loanServices;
+            _repaymentServices = repaymentServices;
         }
 
         [HttpPost]
-        [Authorize(Roles = "borrower")]
-        public async Task<IActionResult> NewLoan(ReqLoanDTO loan)
+        [Authorize]
+        public async Task<IActionResult> CreateDetailRepayment(string idRepayment)
         {
             try
             {
@@ -35,7 +35,6 @@ namespace BEPeer.Controllers
                             Messages = x.Value.Errors.Select(e => e.ErrorMessage).ToList()
                         }).ToList();
                     var errorMessage = new StringBuilder("Validation error occurred!");
-
                     return BadRequest(new ResBaseDTO<object>
                     {
                         Success = false,
@@ -43,45 +42,20 @@ namespace BEPeer.Controllers
                         Data = errors
                     });
                 }
+                var res = await _repaymentServices.CreateDetailPayments(idRepayment);
 
-                var res = await _loanServices.CreateLoan(loan);
                 return Ok(new ResBaseDTO<string>
                 {
                     Success = true,
-                    Message = "Success add loan data",
+                    Message = "Repayment detail created",
                     Data = res
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResBaseDTO<string>
+                if (ex.Message == "Email already exist")
                 {
-                    Success = false,
-                    Message = ex.Message,
-                    Data = null
-                });
-            }
-        }
-
-        [HttpPut]
-        [Authorize(Roles = "lender")]
-        public async Task<IActionResult> UpdateLoan(ReqUpdateLoan updateLoan, string id)
-        {
-            try
-            {
-                var response = await _loanServices.UpdateLoan(updateLoan, id);
-                return Ok(new ResBaseDTO<string>
-                {
-                    Success = true,
-                    Message = "Succes Updating Loan",
-                    Data = response
-                });
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message == "Loan did not exist")
-                {
-                    return BadRequest(new ResBaseDTO<string>
+                    return BadRequest(new ResBaseDTO<object>
                     {
                         Success = false,
                         Message = ex.Message,
@@ -94,22 +68,23 @@ namespace BEPeer.Controllers
                     Message = ex.Message,
                     Data = null
                 });
-
             }
+
+
         }
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> LoanList(string idBorrower, string? status, string? idLender)
+        public async Task<IActionResult> GetDetailRepaymentById(string repaymentId)
         {
             try
             {
-                var res = await _loanServices.LoanList(idBorrower, status, idLender);
+                var response = await _repaymentServices.GetDetailRepaymentById(repaymentId);
                 return Ok(new ResBaseDTO<object>
                 {
+                    Data = response,
                     Success = true,
-                    Message = "Succes Getting Loan List",
-                    Data = res
+                    Message = "Success Payment"
                 });
             }
             catch (Exception ex)

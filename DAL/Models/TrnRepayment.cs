@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DAL.Models
 {
-    [Table("trn_funding")]
-    public class TrnFunding
+    [Table("trn_repayment")]
+    public class TrnRepayment
     {
         [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -20,19 +21,25 @@ namespace DAL.Models
         public string LoanId { get; set; }
 
         [Required]
-        [ForeignKey("User")]
-        [Column("lender_id")]
-        public string LenderId { get; set; }
-
-        [Required]
         [Column("amount")]
         public decimal Amount { get; set; }
 
         [Required]
-        [Column("funded_at")]
-        public DateTime FundedAt { get; set; } = DateTime.UtcNow;
+        [Column("repaid_amount")]
+        public decimal RepaidAmount { get; set; }
+
+        [Required]
+        [Column("balance_amount")]
+        public decimal BalanceAmount { get; set; }
+
+        [Required]
+        [Column("repaid_status")]
+        public string RepaidStatus { get; set; } = "on repay";
+
+        [Required]
+        [Column("paid_at")]
+        public DateTime PaidAt { get; set; } = DateTime.UtcNow;
 
         public MstLoans Loans { get; set; }
-        public MstUser User { get; set; }
     }
 }

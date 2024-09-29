@@ -15,8 +15,8 @@ namespace DAL.DTO.Res
         public decimal Amount { get; set; }
         public decimal InterestRate { get; set; }
         public int Duration { get; set; }
-        public string Status { get; set; } = "requested";
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public string Status { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

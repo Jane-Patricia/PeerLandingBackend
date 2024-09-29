@@ -22,6 +22,7 @@ namespace BEPeer.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Register(ReqRegisterUserDTO register)
         {
             try
@@ -74,7 +75,7 @@ namespace BEPeer.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "admin")]
+        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             try
@@ -166,14 +167,14 @@ namespace BEPeer.Controllers
         }
 
         [HttpPut]
-        [Authorize]
-        public async Task<IActionResult> Update(ReqUpdateDTO updateDTO, string Id)
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> Update(ReqUpdateDTO updateDTO, string id)
         {
             try
             {
                 var currUserRole = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
 
-                var response = await _userservices.Update(updateDTO, Id, currUserRole);
+                var response = await _userservices.Update(updateDTO, id, currUserRole);
                 return Ok(new ResBaseDTO<string>
                 {
                     Success = true,
@@ -185,6 +186,78 @@ namespace BEPeer.Controllers
             catch (Exception ex)
             {
                 if(ex.Message == "User did not exist")
+                {
+                    return BadRequest(new ResBaseDTO<string>
+                    {
+                        Success = false,
+                        Message = ex.Message,
+                        Data = null
+                    });
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResBaseDTO<string>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> UserById(string id)
+        {
+            try
+            {
+                var userById = await _userservices.GetUser(id);
+                return Ok(new ResBaseDTO<object>
+                {
+                    Success = true,
+                    Message = "Succes Selecting User By Id",
+                    Data = userById
+                });
+            }
+            
+            catch (Exception ex)
+            {
+                if (ex.Message == "User did not exist")
+                {
+                    return BadRequest(new ResBaseDTO<string>
+                    {
+                        Success = false,
+                        Message = ex.Message,
+                        Data = null
+                    });
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResBaseDTO<string>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
+        [HttpPut]
+        [Authorize]
+        public async Task<IActionResult> UpdateSaldo(ReqUpdateBalanceDTO _updateBalance,string id)
+        {
+            try
+            {
+                var updateSal = await _userservices.UpdateBalance(_updateBalance, id);
+                return Ok(new ResBaseDTO<object>
+                {
+                    Success = true,
+                    Message = "Succes Updating Balance",
+                    Data = updateSal
+                });
+
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == "User did not exist")
                 {
                     return BadRequest(new ResBaseDTO<string>
                     {

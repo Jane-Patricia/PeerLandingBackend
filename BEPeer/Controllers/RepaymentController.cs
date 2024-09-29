@@ -1,27 +1,26 @@
 ﻿using DAL.DTO.Req;
 using DAL.DTO.Res;
+using DAL.Repositories.Services;
 using DAL.Repositories.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
 using System.Text;
 
 namespace BEPeer.Controllers
 {
-    [Route("rest/v1/loan/[action]")]
+    [Route("rest/v1/repayment/[action]")]
     [ApiController]
-    public class LoanController : ControllerBase
+    public class RepaymentController : Controller
     {
-        private readonly ILoanServices _loanServices;
-        public LoanController(ILoanServices loanServices)
+        private readonly IRepaymentServices _repayServices;
+        public RepaymentController(IRepaymentServices repayServices)
         {
-            _loanServices = loanServices;
+            _repayServices = repayServices;
         }
 
         [HttpPost]
-        [Authorize(Roles = "borrower")]
-        public async Task<IActionResult> NewLoan(ReqLoanDTO loan)
+        [Authorize]
+        public async Task<IActionResult> NewRepayment(ReqDetailRepaymentDTO repay)
         {
             try
             {
@@ -44,7 +43,7 @@ namespace BEPeer.Controllers
                     });
                 }
 
-                var res = await _loanServices.CreateLoan(loan);
+                var res = await _repayServices.CreateRepayment(repay);
                 return Ok(new ResBaseDTO<string>
                 {
                     Success = true,
@@ -63,52 +62,17 @@ namespace BEPeer.Controllers
             }
         }
 
-        [HttpPut]
-        [Authorize(Roles = "lender")]
-        public async Task<IActionResult> UpdateLoan(ReqUpdateLoan updateLoan, string id)
-        {
-            try
-            {
-                var response = await _loanServices.UpdateLoan(updateLoan, id);
-                return Ok(new ResBaseDTO<string>
-                {
-                    Success = true,
-                    Message = "Succes Updating Loan",
-                    Data = response
-                });
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message == "Loan did not exist")
-                {
-                    return BadRequest(new ResBaseDTO<string>
-                    {
-                        Success = false,
-                        Message = ex.Message,
-                        Data = null
-                    });
-                }
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResBaseDTO<string>
-                {
-                    Success = false,
-                    Message = ex.Message,
-                    Data = null
-                });
-
-            }
-        }
-
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> LoanList(string idBorrower, string? status, string? idLender)
+        public async Task<IActionResult> ListRepayment(string idLender, string? status, string? borrowerId)
         {
             try
             {
-                var res = await _loanServices.LoanList(idBorrower, status, idLender);
+                var res = await _repayServices.ListRepayment(idLender, status, borrowerId);
                 return Ok(new ResBaseDTO<object>
                 {
                     Success = true,
-                    Message = "Succes Getting Loan List",
+                    Message = "List of users",
                     Data = res
                 });
             }
@@ -122,5 +86,31 @@ namespace BEPeer.Controllers
                 });
             }
         }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> RepaymentById(string id)
+        {
+            try
+            {
+                var res = await _repayServices.GetRepaymentById(id);
+                return Ok(new ResBaseDTO<object>
+                {
+                    Success = true,
+                    Message = "List of users",
+                    Data = res
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResBaseDTO<string>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
     }
 }

@@ -8,31 +8,25 @@ using System.Threading.Tasks;
 
 namespace DAL.Models
 {
-    [Table("trn_funding")]
-    public class TrnFunding
+    [Table("trn_repayment_detail")]
+    public class TrnRepaymentDetail
     {
         [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Required]
-        [ForeignKey("Loans")]
-        [Column("loan_id")]
-        public string LoanId { get; set; }
-
-        [Required]
-        [ForeignKey("User")]
-        [Column("lender_id")]
-        public string LenderId { get; set; }
+        [ForeignKey("Repayment")]
+        [Column("repayment_id")]
+        public string RepaymentId { get; set; }
 
         [Required]
         [Column("amount")]
         public decimal Amount { get; set; }
 
         [Required]
-        [Column("funded_at")]
-        public DateTime FundedAt { get; set; } = DateTime.UtcNow;
+        [Column("status")]
+        public string Status { get; set; }
 
-        public MstLoans Loans { get; set; }
-        public MstUser User { get; set; }
+        public TrnRepayment Repayment { get; set; }
     }
 }
